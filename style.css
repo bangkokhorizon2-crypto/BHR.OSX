@@ -1,0 +1,415 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Houdini Property for Gradient Animation (PRESERVED) */
+@property --gradient-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotation {
+  0% {
+    --gradient-angle: 0deg;
+  }
+
+  100% {
+    --gradient-angle: 360deg;
+  }
+}
+
+:root {
+  /* Minimalist Horizon Palette */
+  --one-bg: #F9FAFB;
+  /* Very Light Cool Gray */
+  --one-surface: #ffffff;
+  --one-primary: #007afe;
+  --one-text-main: #111827;
+  /* Darker Black/Gray for contrast */
+  --one-text-sub: #6B7280;
+
+  /* Shapes */
+  --radius-card: 26px;
+  --radius-btn: 999px;
+  --radius-input: 999px;
+  /* Full Pill */
+}
+
+body {
+  font-family: 'Outfit', 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--one-bg);
+  color: var(--one-text-main);
+  -webkit-font-smoothing: antialiased;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* --- Typography --- */
+h1,
+h2,
+h3,
+h4,
+.text-ios-primary {
+  color: var(--one-text-main) !important;
+  font-weight: 500;
+  /* Lighter weight for minimalist look */
+  letter-spacing: -0.02em;
+}
+
+.text-ios-secondary,
+.text-gray-500,
+.text-gray-400 {
+  color: var(--one-text-sub) !important;
+  font-weight: 400;
+}
+
+/* --- Cards --- */
+.vision-glass,
+.glass {
+  background-color: var(--one-surface);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  /* Subtle border */
+  overflow: hidden;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.vision-glass-heavy {
+  background-color: var(--one-surface);
+  border-radius: 32px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+
+/* --- Buttons --- */
+.vision-btn,
+button.bg-ios-blue {
+  background: var(--one-primary) !important;
+  border-radius: var(--radius-btn);
+  color: white !important;
+  font-weight: 500;
+  box-shadow: 0 4px 6px -1px rgba(0, 122, 254, 0.2);
+  transition: all 0.2s ease;
+}
+
+.vision-btn:active,
+button.bg-ios-blue:active {
+  transform: scale(0.96);
+  box-shadow: none;
+}
+
+
+/* --- Horizon Input: Teal -> Blue -> Purple Gradient --- */
+.vision-input,
+.glass-input {
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(90deg, #34d399, #3b82f6, #a855f7) border-box;
+  /* Teal -> Blue -> Purple */
+
+  border: 2px solid transparent;
+  border-radius: var(--radius-input);
+
+  color: var(--one-text-main);
+  font-family: 'Outfit', sans-serif;
+  text-align: left;
+  /* Left align for passcode style */
+  padding-left: 2rem !important;
+
+  /* No animation for border by default unless focused, or keep it static as per image. Image looks static gradient. */
+  /* If we want animated: */
+  /* background: linear-gradient(#fff, #fff) padding-box, comic-gradient(...) */
+
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Use a specific class for the Visitor Input if we want the exact look */
+.horizon-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.horizon-input {
+  width: 100%;
+  height: 3.5rem;
+  border-radius: 999px;
+
+  /* Running Light Effect */
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(from var(--gradient-angle), #34d399, #3b82f6, #a855f7, #34d399) border-box;
+
+  border: 2px solid transparent;
+  animation: rotation 3s linear infinite;
+
+  padding-left: 2rem;
+  padding-right: 4rem;
+  font-size: 1.125rem;
+  color: #374151;
+  outline: none;
+  font-family: 'Outfit', sans-serif;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.horizon-input:focus {
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15);
+}
+
+.vision-animated-border {
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(from var(--gradient-angle), #34d399, #3b82f6, #a855f7, #34d399) border-box;
+  border: 2px solid transparent;
+  animation: rotation 4s linear infinite;
+}
+
+.vision-input::placeholder {
+  color: #c4c4c6;
+  font-weight: 400;
+}
+
+.vision-input:focus {
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 122, 254, 0.15);
+  /* Blue glow on focus */
+  transform: scale(1.01);
+}
+
+/* Hide Spin Buttons */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+/* --- Legacy/Utility Overrides for One UI Look --- */
+
+/* Force rounded corners on specific elements if using Tailwind utilities */
+.rounded-\[1\.5rem\],
+.rounded-\[2rem\],
+.rounded-\[2\.5rem\] {
+  border-radius: var(--radius-card) !important;
+}
+
+.rounded-full {
+  border-radius: var(--radius-btn) !important;
+}
+
+/* Navbar Dock Styling - Floating Pill */
+.dock-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 40px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Modal Overrides */
+.full-screen-modal {
+  background: var(--one-bg);
+}
+
+/* --- Animations --- */
+@keyframes vision-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+    filter: blur(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-vision-enter {
+  animation: vision-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes float-orb {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: -1;
+  opacity: 0.4;
+  animation: float-orb 10s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: #60a5fa;
+  top: -100px;
+  left: -100px;
+  animation-duration: 20s;
+}
+
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: #a78bfa;
+  bottom: -100px;
+  right: -100px;
+  animation-duration: 25s;
+  animation-delay: -5s;
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: vision-enter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes modal-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-pop {
+  animation: modal-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes app-launch {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-app-launch {
+  animation: app-launch 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+/* Logo Drop Animation */
+@keyframes logo-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.8);
+  }
+
+  60% {
+    transform: translateY(5px) scale(1.05);
+    /* Bounce up slightly */
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-logo-drop {
+  display: inline-block;
+  opacity: 0;
+  /* Start hidden */
+  animation: logo-drop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  /* Bouncy bezier */
+}
+
+/* Remove scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* --- Wiggle Animation for Navbar Icons (Dook-dik) --- */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+.hover-wiggle:hover i {
+  animation: wiggle 0.4s ease-in-out;
+  /* color: var(--one-primary);  Optional: change color on hover */
+}
+
+/* PromptPay Dynamic QR Styles (Enforce strict 1:1 square ratio) */
+#promptpayQrCode {
+  width: 180px !important;
+  height: 180px !important;
+  min-width: 180px !important;
+  min-height: 180px !important;
+  max-width: 180px !important;
+  max-height: 180px !important;
+  margin: 0 auto !important;
+  display: block !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+
+#promptpayQrCode canvas,
+#promptpayQrCode img {
+  width: 180px !important;
+  height: 180px !important;
+  min-width: 180px !important;
+  min-height: 180px !important;
+  max-width: 180px !important;
+  max-height: 180px !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+  image-rendering: pixelated !important;
+  border-radius: 4px;
+}

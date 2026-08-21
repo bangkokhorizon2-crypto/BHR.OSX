@@ -1,0 +1,16 @@
+{
+    "name": "HORiZON",
+    "short_name": "HORiZON",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#f2f2f4",
+    "theme_color": "#f2f2f4",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "pwa-icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
