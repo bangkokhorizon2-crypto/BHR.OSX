@@ -413,3 +413,205 @@ input[type=number]::-webkit-outer-spin-button {
   image-rendering: pixelated !important;
   border-radius: 4px;
 }
+
+/* =========================================================
+   BHR.OSX THEME SYSTEM
+   - Does not change application/business logic.
+   - QR payment area is deliberately excluded from dark inversion.
+   ========================================================= */
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+html[data-theme="system"] {
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"] {
+    color-scheme: dark;
+  }
+}
+
+html[data-theme="dark"],
+html[data-theme="system"] {
+  --one-bg: #0b0d12;
+  --one-surface: #151821;
+  --one-text-main: #f3f4f6;
+  --one-text-sub: #a1a7b3;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="system"] body {
+  background-color: var(--one-bg) !important;
+  color: var(--one-text-main) !important;
+}
+
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] body {
+    background-color: #F9FAFB !important;
+    color: #111827 !important;
+  }
+}
+
+/* Common Tailwind utility overrides used by the existing UI. */
+html[data-theme="dark"] .bg-white,
+html[data-theme="system"] .bg-white,
+html[data-theme="dark"] .bg-gray-50,
+html[data-theme="system"] .bg-gray-50,
+html[data-theme="dark"] .bg-gray-100,
+html[data-theme="system"] .bg-gray-100 {
+  background-color: var(--one-surface) !important;
+}
+html[data-theme="dark"] .bg-gray-200,
+html[data-theme="system"] .bg-gray-200 {
+  background-color: #202530 !important;
+}
+html[data-theme="dark"] .text-gray-900,
+html[data-theme="system"] .text-gray-900,
+html[data-theme="dark"] .text-gray-800,
+html[data-theme="system"] .text-gray-800,
+html[data-theme="dark"] .text-gray-700,
+html[data-theme="system"] .text-gray-700,
+html[data-theme="dark"] .text-gray-600,
+html[data-theme="system"] .text-gray-600 {
+  color: var(--one-text-main) !important;
+}
+html[data-theme="dark"] .border-gray-50,
+html[data-theme="system"] .border-gray-50,
+html[data-theme="dark"] .border-gray-100,
+html[data-theme="system"] .border-gray-100,
+html[data-theme="dark"] .border-gray-200,
+html[data-theme="system"] .border-gray-200 {
+  border-color: #2a303b !important;
+}
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="system"] input,
+html[data-theme="system"] select,
+html[data-theme="system"] textarea {
+  color: #f3f4f6 !important;
+  background-color: #151821 !important;
+  border-color: #374151;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="system"] input::placeholder {
+  color: #7d8594 !important;
+}
+html[data-theme="dark"] .glass,
+html[data-theme="dark"] .vision-glass,
+html[data-theme="dark"] .vision-glass-heavy,
+html[data-theme="system"] .glass,
+html[data-theme="system"] .vision-glass,
+html[data-theme="system"] .vision-glass-heavy {
+  background-color: var(--one-surface) !important;
+  border-color: #2a303b !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+/* Animated/search inputs retain their gradient border but use a dark fill. */
+html[data-theme="dark"] .vision-input,
+html[data-theme="dark"] .glass-input,
+html[data-theme="dark"] .horizon-input,
+html[data-theme="dark"] .vision-animated-border,
+html[data-theme="system"] .vision-input,
+html[data-theme="system"] .glass-input,
+html[data-theme="system"] .horizon-input,
+html[data-theme="system"] .vision-animated-border {
+  background:
+    linear-gradient(#151821, #151821) padding-box,
+    conic-gradient(from var(--gradient-angle), #34d399, #3b82f6, #a855f7, #34d399) border-box;
+}
+
+/* Floating navigation adapts to the theme. */
+html[data-theme="dark"] #mainNavbar,
+html[data-theme="system"] #mainNavbar {
+  background: rgba(21,24,33,.92) !important;
+  border-color: #2a303b !important;
+}
+html[data-theme="dark"] #mainNavbar .text-gray-400,
+html[data-theme="system"] #mainNavbar .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Settings choices */
+html[data-theme="dark"] .theme-option,
+html[data-theme="system"] .theme-option {
+  background-color: #1d222c !important;
+  border-color: #303744 !important;
+}
+
+/* System mode should only be dark when the OS/browser is dark. */
+@media (prefers-color-scheme: light) {
+  html[data-theme="system"] .bg-white,
+  html[data-theme="system"] .bg-gray-50,
+  html[data-theme="system"] .bg-gray-100 { background-color: #fff !important; }
+  html[data-theme="system"] body { --one-bg:#F9FAFB; --one-surface:#fff; --one-text-main:#111827; --one-text-sub:#6B7280; }
+  html[data-theme="system"] .text-gray-900,
+  html[data-theme="system"] .text-gray-800,
+  html[data-theme="system"] .text-gray-700,
+  html[data-theme="system"] .text-gray-600 { color:#374151 !important; }
+  html[data-theme="system"] input,
+  html[data-theme="system"] select,
+  html[data-theme="system"] textarea { background-color:#fff !important; color:#111827 !important; }
+}
+
+/* Payment QR: NEVER invert/recolor. Keep an absolute black-on-white canvas. */
+#promptpaySection,
+#promptpaySection .bg-white,
+#promptpayQrCode,
+#promptpayQrCode canvas,
+#promptpayQrCode img {
+  color-scheme: light !important;
+}
+#promptpayQrCode,
+#promptpayQrCode canvas,
+#promptpayQrCode img {
+  background: #ffffff !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  forced-color-adjust: none !important;
+}
+
+
+/* Operational UX improvements */
+#mainContent {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#promptpayQrCode {
+  isolation: isolate !important;
+  padding: 4px !important;
+  border-radius: 8px !important;
+}
+
+#promptpayQrCode canvas,
+#promptpayQrCode img {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 767px) {
+  /* Keep primary controls comfortably reachable with one hand. */
+  #mainNavbar {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  #mainNavbar button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+@media (min-width: 768px) {
+  /* Prevent desktop pointer targets from becoming too small. */
+  #mainNavbar button,
+  button {
+    touch-action: manipulation;
+  }
+}
+
+/* Never let dark mode alter the payment QR's visual colors. */
+html[data-theme="dark"] #promptpaySection,
+html[data-theme="system"] #promptpaySection {
+  color-scheme: light !important;
+}

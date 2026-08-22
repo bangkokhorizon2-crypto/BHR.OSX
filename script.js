@@ -12,6 +12,10 @@ const API_READ_ACTIONS = new Set([
 ]);
 let appReady = false;
 let appInitializing = false;
+let currentAppSubPage = 'menu';
+let isSubmittingEntry = false;
+let isSubmittingExit = false;
+let lastSuccessfulDataRefresh = null;
 
 function makeRequestId() {
     return 'BHRV2-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
@@ -88,9 +92,102 @@ async function runApi(action, payload = null, options = {}) {
     return null;
 }
 
-async function initializeAppV2() {
-    if (appInitializing || appReady) return;
+function updateConnectionStatus(state, detail = '') {
+    const dot = document.getElementById('connectionStatusDot');
+    const text = document.getElementById('connectionStatusText');
+    if (!dot || !text) return;
+    const states = {
+        online: ['bg-emerald-500', 'เชื่อมต่อระบบแล้ว'],
+        offline: ['bg-rose-500', 'ออฟไลน์ — ตรวจสอบอินเทอร์เน็ต'],
+        loading: ['bg-amber-400', 'กำลังเชื่อมต่อระบบ…'],
+        error: ['bg-rose-500', 'เชื่อมต่อระบบไม่สำเร็จ']
+    };
+    const item = states[state] || states.loading;
+    dot.className = 'w-2.5 h-2.5 rounded-full shrink-0 ' + item[0];
+    text.textContent = detail || item[1];
+}
+
+function markDataRefreshSuccess() {
+    lastSuccessfulDataRefresh = new Date();
+    const el = document.getElementById('lastDataRefreshText');
+    if (el) el.textContent = 'อัปเดตล่าสุด ' + lastSuccessfulDataRefresh.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    updateConnectionStatus('online');
+}
+
+function hapticFeedback(pattern = 10) {
+    try {
+        if (navigator.vibrate) navigator.vibrate(pattern);
+    } catch (e) {}
+}
+
+async function manualRefreshApp() {
+    if (appInitializing) return;
+    hapticFeedback(10);
+    closeSettings();
+    appReady = false;
+    appInitializing = false;
+    await initializeAppV2(true);
+    if (appReady && currentAppSubPage !== 'menu') {
+        openAppSubPage(currentAppSubPage);
+    }
+}
+
+function initNetworkStatus() {
+    const update = () => updateConnectionStatus(navigator.onLine ? 'online' : 'offline');
+    window.addEventListener('online', () => {
+        updateConnectionStatus('loading');
+        if (!appInitializing) manualRefreshApp();
+    });
+    window.addEventListener('offline', () => updateConnectionStatus('offline'));
+    update();
+}
+
+function initPullToRefresh() {
+    const main = document.getElementById('mainContent');
+    if (!main || !('ontouchstart' in window)) return;
+    let startY = 0;
+    let tracking = false;
+    main.addEventListener('touchstart', (e) => {
+        if (main.scrollTop <= 0 && e.touches.length === 1) {
+            startY = e.touches[0].clientY;
+            tracking = true;
+        }
+    }, { passive: true });
+    main.addEventListener('touchmove', (e) => {
+        if (!tracking || main.scrollTop > 0 || !e.touches.length) return;
+        if (e.touches[0].clientY - startY > 70) {
+            tracking = false;
+            manualRefreshApp();
+        }
+    }, { passive: true });
+    main.addEventListener('touchend', () => { tracking = false; }, { passive: true });
+}
+
+function initUnsavedChangesGuard() {
+    let dirty = false;
+    const markDirty = (e) => {
+        const target = e.target;
+        if (!target || !target.matches('input, textarea, select')) return;
+        if (target.dataset.ignoreDirty === 'true') return;
+        dirty = true;
+    };
+    document.addEventListener('input', markDirty, true);
+    document.addEventListener('change', markDirty, true);
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('[data-clear-dirty="true"]')) dirty = false;
+    }, true);
+    window.addEventListener('beforeunload', (e) => {
+        if (!dirty) return;
+        e.preventDefault();
+        e.returnValue = '';
+    });
+    window.bhrClearUnsavedGuard = () => { dirty = false; };
+}
+
+async function initializeAppV2(force = false) {
+    if (appInitializing || (appReady && !force)) return;
     appInitializing = true;
+    updateConnectionStatus('loading');
     setAppReadyUI(false, 'กำลังเชื่อมต่อระบบ…');
     try {
         // One lightweight real API call before enabling the UI. This prevents the
@@ -100,9 +197,11 @@ async function initializeAppV2() {
         localStorage.setItem('tempParkingData', JSON.stringify(res));
         renderHomeTempStatus(res);
         appReady = true;
+        markDataRefreshSuccess();
         setAppReadyUI(true);
     } catch (error) {
         appReady = false;
+        updateConnectionStatus('error');
         setAppReadyUI(false, 'เชื่อมต่อระบบไม่สำเร็จ');
         const detail = error?.message || 'กรุณาตรวจสอบการเชื่อมต่อ';
         const detailEl = document.getElementById('appReadyDetail');
@@ -274,6 +373,7 @@ function switchTab(tabName) {
 }
 
 function openAppSubPage(pageName) {
+    currentAppSubPage = pageName;
     if (!appReady && pageName !== 'menu') return;
     const pages = ['appMenuPage', 'tempParkingPage', 'visitorHistoryPage', 'licensePlatePage', 'ownerListPage', 'aiModePage'];
     pages.forEach(id => {
@@ -322,6 +422,9 @@ function retryAppInitialization() {
 // ==========================================
 function initHomeHeader() {
     initDesktopNavbar();
+    initNetworkStatus();
+    initPullToRefresh();
+    initUnsavedChangesGuard();
     initializeAppV2();
 }
 
@@ -450,18 +553,22 @@ function showEntryForm(cardId) {
 }
 
 function submitEntry() {
+    if (isSubmittingEntry) return;
     const cardId = document.getElementById('entryCardIdDisplay').value;
     const roomNo = document.getElementById('entryRoomNo').value;
     if (!cardId || !roomNo) return showAlert('แจ้งเตือน', 'ข้อมูลไม่ครบ', 'error');
     if (!currentPlateImg) return showAlert('แจ้งเตือน', 'ถ่ายรูปทะเบียน', 'error');
+    isSubmittingEntry = true;
+    hapticFeedback(15);
     toggleLoading(true);
 
     // API Call: saveEntry
     runApi('saveEntry', { cardId, roomNo, plateImg: currentPlateImg }).then(res => {
         toggleLoading(false);
-        if (res && res.success) { showAlert('สำเร็จ', res.message, 'success'); resetHome(); }
+        isSubmittingEntry = false;
+        if (res && res.success) { hapticFeedback([20, 40, 20]); showAlert('สำเร็จ', res.message, 'success'); resetHome(); }
         else showAlert('ผิดพลาด', res ? res.message : 'Unknown error', 'error');
-    });
+    }).catch(() => { toggleLoading(false); isSubmittingEntry = false; });
 }
 
 // ==========================================
@@ -557,6 +664,8 @@ let qrCodeInstance = null;
 function renderPromptPayQR(targetId, amount, ref1, ref2) {
     const qrContainer = document.getElementById('promptpayQrCode');
     if (!qrContainer) return;
+    // QR must remain black-on-white even in dark/system-dark mode for scanner compatibility.
+    qrContainer.style.backgroundColor = '#ffffff';
     qrContainer.innerHTML = '';
 
     const payload = generatePromptPayPayload(targetId, amount, ref1, ref2);
@@ -655,14 +764,18 @@ function openCheckoutPopup(record) {
 }
 
 function submitExit() {
-    if (!currentRecord) return;
+    if (isSubmittingExit || !currentRecord) return;
     if (currentRecord.price > 0 && !currentSlipImg) return showAlert('แจ้งเตือน', 'กรุณาแนบสลิป', 'error');
     showConfirm('ยืนยันรถออก', `ยอดชำระ ${currentRecord.price} บาท`, () => {
+        if (isSubmittingExit) return;
+        isSubmittingExit = true;
+        hapticFeedback(15);
         toggleLoading(true);
         const data = { ...currentRecord, slipImg: currentSlipImg };
         // API Call: saveExit
         runApi('saveExit', data).then(res => {
             toggleLoading(false);
+            isSubmittingExit = false;
             document.getElementById('exitPopupModal').classList.add('hidden');
             document.getElementById('exitPopupModal').classList.remove('flex');
             if (res && res.success) { showAlert('สำเร็จ', res.message, 'success'); resetHome(); }
@@ -1333,6 +1446,67 @@ function submitAdminPin() {
     }
 }
 function closePinModal() { document.getElementById('pinModal').classList.add('hidden'); document.getElementById('pinModal').classList.remove('flex'); pinCheckMode = 'admin'; }
+/* ==========================================
+   THEME / DISPLAY SETTINGS
+   ========================================== */
+function getThemePreference() {
+    try { return localStorage.getItem('bhr-theme') || 'system'; }
+    catch (e) { return 'system'; }
+}
+
+function isDarkTheme() {
+    const pref = getThemePreference();
+    return pref === 'dark' || (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+
+function applyTheme(preference, persist = true) {
+    const value = ['light', 'dark', 'system'].includes(preference) ? preference : 'system';
+    document.documentElement.dataset.theme = value;
+    if (persist) {
+        try { localStorage.setItem('bhr-theme', value); } catch (e) {}
+    }
+    updateThemeChecks();
+}
+
+function updateThemeChecks() {
+    const current = getThemePreference();
+    ['Light', 'Dark', 'System'].forEach(name => {
+        const el = document.getElementById('themeCheck' + name);
+        if (el) el.classList.toggle('hidden', current !== name.toLowerCase());
+    });
+}
+
+function openSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    updateThemeChecks();
+}
+
+function closeSettings() {
+    const modal = document.getElementById('settingsModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function setTheme(preference) {
+    applyTheme(preference);
+    closeSettings();
+}
+
+// Respect browser/phone appearance changes while "ตามระบบ" is selected.
+if (window.matchMedia) {
+    const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => {
+        if (getThemePreference() === 'system') applyTheme('system', false);
+    };
+    if (themeMedia.addEventListener) themeMedia.addEventListener('change', handleSystemThemeChange);
+    else if (themeMedia.addListener) themeMedia.addListener(handleSystemThemeChange);
+}
+applyTheme(getThemePreference(), false);
+
 function openAiMode() { pinCheckMode = 'ai'; requestAdminPin(() => openAppSubPage('ai')); }
 function goToAiAccounting() { document.getElementById('aiMenuSubPage').classList.add('hidden'); document.getElementById('aiAccountingSubPage').classList.remove('hidden'); }
 function backFromAiAccounting() { document.getElementById('aiAccountingSubPage').classList.add('hidden'); document.getElementById('aiMenuSubPage').classList.remove('hidden'); }
