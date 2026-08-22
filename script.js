@@ -144,41 +144,38 @@ function initNetworkStatus() {
 
 async function initializeAppV2(force = false) {
     if (appInitializing || (appReady && !force)) return;
+
+    // Home is the primary working screen for security staff. Never block it
+    // while the background data request is connecting.
+    appReady = true;
+    setAppReadyUI(true);
     appInitializing = true;
     updateConnectionStatus('loading');
-    setAppReadyUI(false, 'กำลังเชื่อมต่อระบบ…');
+
     try {
-        // One lightweight real API call before enabling the UI. This prevents the
-        // iOS/WebKit issue where the page is visible while the backend is not ready.
+        // Refresh Home data in the background. The Home UI and card-entry action
+        // remain available immediately while this request is in flight.
         const res = await runApi('getAllTempData', null, { silent: true, retries: 1 });
         if (!res || res.success === false) throw new Error(res?.message || 'API ยังไม่พร้อม');
         localStorage.setItem('tempParkingData', JSON.stringify(res));
         renderHomeTempStatus(res);
-        appReady = true;
         markDataRefreshSuccess();
-        setAppReadyUI(true);
     } catch (error) {
-        appReady = false;
-        updateConnectionStatus('error');
-        setAppReadyUI(false, 'เชื่อมต่อระบบไม่สำเร็จ');
-        const detail = error?.message || 'กรุณาตรวจสอบการเชื่อมต่อ';
-        const detailEl = document.getElementById('appReadyDetail');
-        if (detailEl) detailEl.textContent = detail;
+        // Do not lock the Home screen when the background refresh fails.
+        // Individual actions will still request the backend when needed.
+        updateConnectionStatus('error', 'เชื่อมต่อข้อมูลไม่สำเร็จ — Home ยังใช้งานได้');
+        console.warn('Background Home data refresh failed:', error);
     } finally {
         appInitializing = false;
+        setAppReadyUI(true);
     }
 }
 
 function setAppReadyUI(ready, message = '') {
+    // Startup must never block Home. Keep the legacy overlay hidden for
+    // compatibility with existing markup and retry handlers.
     const overlay = document.getElementById('appReadyOverlay');
-    const title = document.getElementById('appReadyTitle');
-    const detail = document.getElementById('appReadyDetail');
-    const retry = document.getElementById('appReadyRetry');
-    if (!overlay) return;
-    overlay.classList.toggle('hidden', ready);
-    if (title && message) title.textContent = message;
-    if (detail && ready) detail.textContent = 'ระบบพร้อมใช้งาน';
-    if (retry) retry.classList.toggle('hidden', ready || appInitializing);
+    if (overlay) overlay.classList.add('hidden');
 }
 
 // ==========================================
@@ -446,11 +443,12 @@ function loadHomeTempStatus() {
         renderHomeTempStatus(res);
     }
 
-    // 2. Network Update
-    runApi('getAllTempData').then(res => {
+    // 2. Network Update (background only — never block Home)
+    runApi('getAllTempData', null, { silent: true, retries: 1 }).then(res => {
         if (res) {
             localStorage.setItem('tempParkingData', JSON.stringify(res)); // Shared cache with Temp page
             renderHomeTempStatus(res);
+            markDataRefreshSuccess();
         }
     });
 }

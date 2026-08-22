@@ -742,3 +742,50 @@ html[data-theme="dark"] #loader .vision-glass {
 html[data-theme="dark"] #loader .text-ios-secondary {
   color: #e5e7eb !important;
 }
+
+/* =========================================================
+   iOS / Mobile Viewport + Floating Dock Refinement
+   Keep the dock clear of the iPhone home-indicator/safe area.
+   ========================================================= */
+#appReadyOverlay { display: none !important; }
+
+@supports (height: 100dvh) {
+  html, body { min-height: 100dvh !important; }
+  body { height: 100dvh !important; }
+}
+
+@media (max-width: 767px) {
+  #mainNavbar {
+    /* Do not add safe-area padding inside the pill; move the whole dock instead. */
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    padding-bottom: 0 !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    box-sizing: border-box !important;
+    margin-bottom: 0 !important;
+    transform: translate3d(-50%, 0, 0) !important;
+    -webkit-transform: translate3d(-50%, 0, 0) !important;
+    will-change: transform;
+  }
+
+  #mainNavbar button {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    flex: 0 0 48px !important;
+  }
+
+  /* Keep the last content clear of the floating dock on phones. */
+  #mainContent { padding-bottom: 7rem !important; }
+}
+
+/* iPhone/iPad Safari standalone/PWA: slightly more breathing room above the
+   home indicator without changing the dock's internal alignment. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 767px) {
+    #mainNavbar {
+      bottom: calc(env(safe-area-inset-bottom) + 10px) !important;
+    }
+  }
+}
