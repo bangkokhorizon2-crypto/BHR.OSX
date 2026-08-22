@@ -654,7 +654,9 @@ html[data-theme="liquid"] #promptpayQrCode img {
 
 #promptpayQrCode {
   box-sizing: border-box !important;
-  padding: 6px !important;
+  width: 240px !important;
+  height: 240px !important;
+  padding: 16px !important;
   background: #fff !important;
   border: 0 !important;
   box-shadow: none !important;
@@ -672,8 +674,9 @@ html[data-theme="liquid"] #promptpayQrCode img {
   transform: none !important;
   filter: none !important;
   mix-blend-mode: normal !important;
-  image-rendering: pixelated !important;
+  image-rendering: auto !important;
   object-fit: contain !important;
+  display: block !important;
 }
 
 /* Do not let a parent glass layer create translucency over payment content. */

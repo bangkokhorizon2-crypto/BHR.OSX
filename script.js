@@ -660,24 +660,24 @@ function renderPromptPayQR(targetId, amount, ref1, ref2) {
                 colorLight: "#ffffff",
                 correctLevel: (QRCode.CorrectLevel && typeof QRCode.CorrectLevel.M !== 'undefined') ? QRCode.CorrectLevel.M : 0
             });
-            setTimeout(() => {
-                const canvas = qrContainer.querySelector('canvas');
-                const img = qrContainer.querySelector('img');
-                if (canvas) {
-                    canvas.style.width = '208px';
-                    canvas.style.height = '208px';
-                    canvas.width = 208;
-                    canvas.height = 208;
-                    canvas.style.display = 'block';
-                    canvas.style.margin = '0 auto';
-                }
-                if (img) {
-                    img.style.width = '208px';
-                    img.style.height = '208px';
-                    img.style.margin = '0 auto';
-                }
-            }, 50);
-            rendered = true;
+            // IMPORTANT: do NOT rewrite canvas.width / canvas.height after QRCode draws.
+            // Changing either canvas attribute clears the bitmap and was the cause of
+            // the QR appearing as a tiny/broken strip in the payment dialog.
+            const canvas = qrContainer.querySelector('canvas');
+            const img = qrContainer.querySelector('img');
+            if (canvas) {
+                canvas.style.width = '208px';
+                canvas.style.height = '208px';
+                canvas.style.display = 'block';
+                canvas.style.margin = '0 auto';
+            }
+            if (img) {
+                img.style.width = '208px';
+                img.style.height = '208px';
+                img.style.display = 'block';
+                img.style.margin = '0 auto';
+            }
+            rendered = !!(canvas || img);
         } catch (err) {
             console.warn("QRCode constructor error, using fallback:", err);
             rendered = false;
