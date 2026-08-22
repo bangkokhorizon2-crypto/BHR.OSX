@@ -142,27 +142,6 @@ function initNetworkStatus() {
     update();
 }
 
-function initUnsavedChangesGuard() {
-    let dirty = false;
-    const markDirty = (e) => {
-        const target = e.target;
-        if (!target || !target.matches('input, textarea, select')) return;
-        if (target.dataset.ignoreDirty === 'true') return;
-        dirty = true;
-    };
-    document.addEventListener('input', markDirty, true);
-    document.addEventListener('change', markDirty, true);
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('[data-clear-dirty="true"]')) dirty = false;
-    }, true);
-    window.addEventListener('beforeunload', (e) => {
-        if (!dirty) return;
-        e.preventDefault();
-        e.returnValue = '';
-    });
-    window.bhrClearUnsavedGuard = () => { dirty = false; };
-}
-
 async function initializeAppV2(force = false) {
     if (appInitializing || (appReady && !force)) return;
     appInitializing = true;
@@ -402,7 +381,6 @@ function retryAppInitialization() {
 function initHomeHeader() {
     initDesktopNavbar();
     initNetworkStatus();
-    initUnsavedChangesGuard();
     initializeAppV2();
 }
 
