@@ -142,27 +142,6 @@ function initNetworkStatus() {
     update();
 }
 
-function initPullToRefresh() {
-    const main = document.getElementById('mainContent');
-    if (!main || !('ontouchstart' in window)) return;
-    let startY = 0;
-    let tracking = false;
-    main.addEventListener('touchstart', (e) => {
-        if (main.scrollTop <= 0 && e.touches.length === 1) {
-            startY = e.touches[0].clientY;
-            tracking = true;
-        }
-    }, { passive: true });
-    main.addEventListener('touchmove', (e) => {
-        if (!tracking || main.scrollTop > 0 || !e.touches.length) return;
-        if (e.touches[0].clientY - startY > 70) {
-            tracking = false;
-            manualRefreshApp();
-        }
-    }, { passive: true });
-    main.addEventListener('touchend', () => { tracking = false; }, { passive: true });
-}
-
 function initUnsavedChangesGuard() {
     let dirty = false;
     const markDirty = (e) => {
@@ -423,7 +402,6 @@ function retryAppInitialization() {
 function initHomeHeader() {
     initDesktopNavbar();
     initNetworkStatus();
-    initPullToRefresh();
     initUnsavedChangesGuard();
     initializeAppV2();
 }
@@ -664,7 +642,7 @@ let qrCodeInstance = null;
 function renderPromptPayQR(targetId, amount, ref1, ref2) {
     const qrContainer = document.getElementById('promptpayQrCode');
     if (!qrContainer) return;
-    // QR must remain black-on-white even in dark/system-dark mode for scanner compatibility.
+    // QR payment stays black-on-white with a clean quiet zone for reliable scanning.
     qrContainer.style.backgroundColor = '#ffffff';
     qrContainer.innerHTML = '';
 
@@ -676,24 +654,26 @@ function renderPromptPayQR(targetId, amount, ref1, ref2) {
         try {
             qrCodeInstance = new QRCode(qrContainer, {
                 text: payload,
-                width: 180,
-                height: 180,
+                width: 208,
+                height: 208,
                 colorDark: "#000000",
                 colorLight: "#ffffff",
-                correctLevel: (QRCode.CorrectLevel && typeof QRCode.CorrectLevel.L !== 'undefined') ? QRCode.CorrectLevel.L : 1
+                correctLevel: (QRCode.CorrectLevel && typeof QRCode.CorrectLevel.M !== 'undefined') ? QRCode.CorrectLevel.M : 0
             });
             setTimeout(() => {
                 const canvas = qrContainer.querySelector('canvas');
                 const img = qrContainer.querySelector('img');
                 if (canvas) {
-                    canvas.style.width = '180px';
-                    canvas.style.height = '180px';
+                    canvas.style.width = '208px';
+                    canvas.style.height = '208px';
+                    canvas.width = 208;
+                    canvas.height = 208;
                     canvas.style.display = 'block';
                     canvas.style.margin = '0 auto';
                 }
                 if (img) {
-                    img.style.width = '180px';
-                    img.style.height = '180px';
+                    img.style.width = '208px';
+                    img.style.height = '208px';
                     img.style.margin = '0 auto';
                 }
             }, 50);
@@ -707,9 +687,9 @@ function renderPromptPayQR(targetId, amount, ref1, ref2) {
     if (!rendered) {
         // Fallback using image URL
         const qrImg = document.createElement('img');
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=4&data=${encodeURIComponent(payload)}`;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=208x208&margin=4&data=${encodeURIComponent(payload)}`;
         qrImg.alt = "PromptPay QR Code";
-        qrImg.className = "w-[180px] h-[180px] object-contain mx-auto block";
+        qrImg.className = "w-[208px] h-[208px] object-contain mx-auto block";
         qrContainer.appendChild(qrImg);
     }
 }
@@ -1450,17 +1430,18 @@ function closePinModal() { document.getElementById('pinModal').classList.add('hi
    THEME / DISPLAY SETTINGS
    ========================================== */
 function getThemePreference() {
-    try { return localStorage.getItem('bhr-theme') || 'system'; }
-    catch (e) { return 'system'; }
+    try {
+        const saved = localStorage.getItem('bhr-theme');
+        return ['dark', 'liquid'].includes(saved) ? saved : 'light';
+    } catch (e) { return 'light'; }
 }
 
 function isDarkTheme() {
-    const pref = getThemePreference();
-    return pref === 'dark' || (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    return getThemePreference() === 'dark';
 }
 
 function applyTheme(preference, persist = true) {
-    const value = ['light', 'dark', 'system'].includes(preference) ? preference : 'system';
+    const value = ['dark', 'liquid'].includes(preference) ? preference : 'light';
     document.documentElement.dataset.theme = value;
     if (persist) {
         try { localStorage.setItem('bhr-theme', value); } catch (e) {}
@@ -1470,7 +1451,7 @@ function applyTheme(preference, persist = true) {
 
 function updateThemeChecks() {
     const current = getThemePreference();
-    ['Light', 'Dark', 'System'].forEach(name => {
+    ['Light', 'Dark', 'Liquid'].forEach(name => {
         const el = document.getElementById('themeCheck' + name);
         if (el) el.classList.toggle('hidden', current !== name.toLowerCase());
     });
@@ -1496,15 +1477,6 @@ function setTheme(preference) {
     closeSettings();
 }
 
-// Respect browser/phone appearance changes while "ตามระบบ" is selected.
-if (window.matchMedia) {
-    const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleSystemThemeChange = () => {
-        if (getThemePreference() === 'system') applyTheme('system', false);
-    };
-    if (themeMedia.addEventListener) themeMedia.addEventListener('change', handleSystemThemeChange);
-    else if (themeMedia.addListener) themeMedia.addListener(handleSystemThemeChange);
-}
 applyTheme(getThemePreference(), false);
 
 function openAiMode() { pinCheckMode = 'ai'; requestAdminPin(() => openAppSubPage('ai')); }
