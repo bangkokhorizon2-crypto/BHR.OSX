@@ -4,6 +4,7 @@
 // IMPORTANT: After creating the V2 Google Apps Script Web App, put its /exec URL
 // in config.js. This keeps the V2 endpoint separate from the production system.
 const API_URL = (typeof BHR_API_URL !== 'undefined') ? BHR_API_URL : '';
+const BHR_APP_VERSION = (window.BHR_APP_VERSION || '1.0.10');
 const API_TIMEOUT_MS = 35000;
 const API_READ_RETRIES = 1;
 const API_READ_ACTIONS = new Set([
@@ -1439,6 +1440,8 @@ function openSettings() {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     updateThemeChecks();
+    const version = document.getElementById('appVersionText');
+    if (version) version.textContent = 'v' + BHR_APP_VERSION;
 }
 
 function closeSettings() {

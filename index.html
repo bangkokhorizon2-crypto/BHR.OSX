@@ -35,9 +35,15 @@
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <script>
+        // BHR.OSX update check: changing this version also changes the SW script URL,
+        // so installed PWAs can pick up a new build without reinstalling.
+        window.BHR_APP_VERSION = '1.0.10';
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('Service Worker Registered'))
+            navigator.serviceWorker.register('sw.js?v=1.0.10', { updateViaCache: 'none' })
+                .then((registration) => {
+                    registration.update().catch(() => {});
+                    console.log('BHR.OSX Service Worker ready:', registration.scope);
+                })
                 .catch(err => console.error('Service Worker Error:', err));
         }
     </script>
@@ -432,6 +438,7 @@
                     <span id="connectionStatusDot" class="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0"></span>
                     <span id="connectionStatusText">กำลังตรวจสอบการเชื่อมต่อ…</span>
                 </div>
+                <div class="px-2 pt-1 text-[11px] text-gray-400">BHR.OSX <span id="appVersionText">v1.0.10</span></div>
             </div>
         </div>
     </div>
