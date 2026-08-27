@@ -20,7 +20,7 @@
         (function () {
             try {
                 const saved = localStorage.getItem('bhr-theme');
-                document.documentElement.dataset.theme = ['dark','liquid'].includes(saved) ? saved : 'light';
+                document.documentElement.dataset.theme = saved === 'dark' ? 'dark' : 'light';
             } catch (e) {
                 document.documentElement.dataset.theme = 'light';
             }
@@ -37,9 +37,9 @@
     <script>
         // BHR.OSX update check: changing this version also changes the SW script URL,
         // so installed PWAs can pick up a new build without reinstalling.
-        window.BHR_APP_VERSION = '1.0.10';
+        window.BHR_APP_VERSION = '1.0.14';
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=1.0.10', { updateViaCache: 'none' })
+            navigator.serviceWorker.register('sw.js?v=1.0.14', { updateViaCache: 'none' })
                 .then((registration) => {
                     registration.update().catch(() => {});
                     console.log('BHR.OSX Service Worker ready:', registration.scope);
@@ -244,6 +244,14 @@
                             <span
                                 class="text-xs font-bold text-gray-500 tracking-wide mt-1 group-hover:text-slate-700 transition">acc</span>
                         </div>
+                        <div onclick="openPaymentQrGenerator()"
+                            class="flex flex-col items-center gap-2 group cursor-pointer active:scale-95 transition animate-app-launch"
+                            style="animation-delay: 0.25s">
+                            <div class="w-16 h-16 rounded-[1.4rem] flex items-center justify-center bg-blue-50 text-blue-600 shadow-sm border border-blue-100 group-hover:bg-blue-100 group-hover:scale-105 transition duration-300">
+                                <i class="fas fa-qrcode text-2xl"></i>
+                            </div>
+                            <span class="text-xs font-bold text-gray-500 tracking-wide mt-1 group-hover:text-blue-600 transition">EDC</span>
+                        </div>
                         <div onclick="openSettings()"
                             class="flex flex-col items-center gap-2 group cursor-pointer active:scale-95 transition animate-app-launch"
                             style="animation-delay: 0.25s">
@@ -398,6 +406,81 @@
         </button>
     </nav>
 
+    <div id="paymentQrGeneratorModal"
+        class="hidden fixed inset-0 z-[220] bg-black/60 backdrop-blur-sm items-center justify-center p-0 sm:p-4">
+        <div class="payment-generator-card w-full max-w-lg h-full sm:h-auto sm:max-h-[94vh] sm:rounded-[30px] shadow-2xl overflow-y-auto">
+            <div class="payment-modal-topbar">
+                <button onclick="closePaymentQrGenerator()" class="payment-close-button" aria-label="ปิด">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="payment-modal-title">
+                    <span class="payment-modal-kicker">PAYMENT</span>
+                    <h3>EDC</h3>
+                </div>
+                <span class="payment-modal-mark"><i class="fas fa-credit-card"></i></span>
+            </div>
+
+            <div class="p-5 sm:p-6">
+                <div id="manualQrForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="payment-field-label">จำนวนเงิน</label>
+                            <div class="payment-amount-input-wrap">
+                                <input id="manualQrAmount" type="number" inputmode="decimal" min="0.01" step="0.01" class="payment-field payment-amount-input" placeholder="0.00">
+                                <span>บาท</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="payment-field-label">Ref 1</label>
+                                <input id="manualQrRef1" type="text" maxlength="20" class="payment-field font-mono" placeholder="">
+                            </div>
+                            <div>
+                                <label class="payment-field-label">Ref 2</label>
+                                <input id="manualQrRef2" type="text" maxlength="20" class="payment-field font-mono" placeholder="เช่น A101">
+                            </div>
+                        </div>
+                        <div class="payment-generator-note">
+                            <i class="fas fa-circle-info"></i>
+                            <span>Ref 1 หากไม่กรอก ระบบจะใส่ <b>788</b> ให้อัตโนมัติ</span>
+                        </div>
+                        <button onclick="generateManualPaymentQR()" class="payment-generate-button mt-4">
+                            <i class="fas fa-qrcode"></i><span>สร้าง QR ชำระเงิน</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="manualQrResult" class="hidden">
+                    <div class="payment-ready-banner">
+                        <div class="payment-ready-icon"><i class="fas fa-check"></i></div>
+                        <div>
+                            <div class="payment-ready-title">พร้อมให้ชำระ</div>
+                            <div class="payment-ready-subtitle">เปิด Mobile Banking แล้วสแกน QR ด้านล่าง</div>
+                        </div>
+                    </div>
+
+                    <div class="payment-qr-card">
+                        <div class="payment-qr-label">THAI QR PAYMENT</div>
+                        <div id="manualQrCode" class="payment-qr-code"></div>
+                        <div class="payment-result-amount" id="manualQrAmountDisplay"></div>
+                    </div>
+
+                    <div class="payment-summary-card">
+                        <div class="payment-summary-title">รายละเอียดการชำระ</div>
+                        <div class="payment-info-row"><span>ผู้รับเงิน</span><strong id="manualQrAccountDisplay">-</strong></div>
+                        <div class="payment-info-row"><span>Ref 1</span><strong id="manualQrRef1Display">-</strong></div>
+                        <div class="payment-info-row"><span>Ref 2 / ห้อง</span><strong id="manualQrRef2Display">-</strong></div>
+                    </div>
+
+                    <div class="payment-result-actions">
+                        <button onclick="resetManualPaymentQR()" class="payment-secondary-button"><i class="fas fa-rotate-left"></i> สร้างใหม่</button>
+                        <button onclick="closePaymentQrGenerator()" class="payment-primary-button"><i class="fas fa-check"></i> เสร็จสิ้น</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="settingsModal"
         class="hidden fixed inset-0 z-[220] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass w-full max-w-sm rounded-[2rem] p-6 shadow-2xl animate-modal-pop">
@@ -413,19 +496,14 @@
             </div>
             <div class="space-y-2">
                 <button onclick="setTheme('light')" class="theme-option w-full flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left">
-                    <span class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-amber-500"><i class="fas fa-sun"></i></span>
-                    <span class="flex-1"><strong class="block text-gray-800 text-sm">สว่าง</strong><small class="text-gray-500">พื้นหลังสว่างตลอด</small></span>
+                    <span class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm text-gray-700"><i class="fas fa-sun"></i></span>
+                    <span class="flex-1"><strong class="block text-gray-800 text-sm">สีขาว</strong><small class="text-gray-500">เรียบง่ายแบบ ChatGPT</small></span>
                     <i id="themeCheckLight" class="fas fa-check text-blue-600 hidden"></i>
                 </button>
                 <button onclick="setTheme('dark')" class="theme-option w-full flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left">
                     <span class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center shadow-sm text-white"><i class="fas fa-moon"></i></span>
-                    <span class="flex-1"><strong class="block text-gray-800 text-sm">มืด</strong><small class="text-gray-500">พื้นหลังมืดตลอด</small></span>
+                    <span class="flex-1"><strong class="block text-gray-800 text-sm">สีดำ</strong><small class="text-gray-500">ธีมมืด</small></span>
                     <i id="themeCheckDark" class="fas fa-check text-blue-600 hidden"></i>
-                </button>
-                <button onclick="setTheme('liquid')" class="theme-option theme-option-liquid w-full flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-left">
-                    <span class="w-10 h-10 rounded-xl bg-white/70 backdrop-blur-xl flex items-center justify-center shadow-sm text-blue-500"><i class="fas fa-layer-group"></i></span>
-                    <span class="flex-1"><strong class="block text-gray-800 text-sm">Liquid Glass</strong><small class="text-gray-500">สไตล์ iOS แบบกระจกใส</small></span>
-                    <i id="themeCheckLiquid" class="fas fa-check text-blue-600 hidden"></i>
                 </button>
             </div>
 
@@ -438,7 +516,7 @@
                     <span id="connectionStatusDot" class="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0"></span>
                     <span id="connectionStatusText">กำลังตรวจสอบการเชื่อมต่อ…</span>
                 </div>
-                <div class="px-2 pt-1 text-[11px] text-gray-400">BHR.OSX <span id="appVersionText">v1.0.10</span></div>
+                <div class="px-2 pt-1 text-[11px] text-gray-400">BHR.OSX <span id="appVersionText">v1.0.12</span></div>
             </div>
         </div>
     </div>

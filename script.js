@@ -559,60 +559,36 @@ function formatTlv(tag, value) {
 }
 
 function generatePromptPayPayload(targetId, amount = null, ref1 = '', ref2 = '') {
-    const cleaned = String(targetId).replace(/[^0-9]/g, '');
-    let tagField = '';
-
-    if (cleaned.length === 15) {
-        // Tag 30: Bill Payment (Biller ID 15 digits)
-        const sub00 = formatTlv('00', 'A000000677010112');
-        const sub01 = formatTlv('01', cleaned);
-        let cleanRef1 = String(ref1 || '001').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 20);
-        if (!cleanRef1) cleanRef1 = '001';
-        const sub02 = formatTlv('02', cleanRef1);
-        
-        let sub03 = '';
-        if (ref2) {
-            const cleanRef2 = String(ref2).replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 20);
-            if (cleanRef2) sub03 = formatTlv('03', cleanRef2);
-        }
-        const tag30Val = sub00 + sub01 + sub02 + sub03;
-        tagField = formatTlv('30', tag30Val);
-    } else if (cleaned.length === 13) {
-        // Tag 29: National ID / Tax ID (13 digits)
-        const sub00 = formatTlv('00', 'A000000677010111');
-        const sub02 = formatTlv('02', cleaned);
-        tagField = formatTlv('29', sub00 + sub02);
-    } else if (cleaned.length === 10 || cleaned.length === 9) {
-        // Tag 29: Mobile Phone (08x... -> 00668...)
-        let phone = cleaned;
-        if (phone.startsWith('0')) {
-            phone = '66' + phone.slice(1);
-        }
-        const paddedPhone = phone.padStart(13, '0');
-        const sub00 = formatTlv('00', 'A000000677010111');
-        const sub01 = formatTlv('01', paddedPhone);
-        tagField = formatTlv('29', sub00 + sub01);
-    } else {
-        const sub00 = formatTlv('00', 'A000000677010112');
-        const sub01 = formatTlv('01', cleaned.padEnd(15, '0'));
-        tagField = formatTlv('30', sub00 + sub01 + formatTlv('02', '001'));
+    const cleaned = String(targetId || '').replace(/[^0-9]/g, '');
+    if (cleaned.length !== 15) {
+        throw new Error('Biller ID ต้องมี 15 หลัก');
     }
+
+    // Thai QR Bill Payment (Tag 30)
+    // Keep the payload minimal and in the standard field order for broad
+    // mobile-banking compatibility. Ref 1 is always present; when the user
+    // leaves it blank, the requested default is 788.
+    const cleanRef1 = String(ref1 || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 20) || '788';
+    const cleanRef2 = String(ref2 || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 20);
+
+    const tag30Value =
+        formatTlv('00', 'A000000677010112') +
+        formatTlv('01', cleaned) +
+        formatTlv('02', cleanRef1) +
+        (cleanRef2 ? formatTlv('03', cleanRef2) : '');
 
     const tag00 = formatTlv('00', '01');
-    const isDynamic = amount !== null && Number(amount) > 0;
+    const isDynamic = Number(amount) > 0;
     const tag01 = formatTlv('01', isDynamic ? '12' : '11');
-    const tag53 = formatTlv('53', '764'); // THB
-    let tag54 = '';
-    if (isDynamic) {
-        tag54 = formatTlv('54', Number(amount).toFixed(2));
-    }
+    const tag53 = formatTlv('53', '764');
+    const tag54 = isDynamic ? formatTlv('54', Number(amount).toFixed(2)) : '';
     const tag58 = formatTlv('58', 'TH');
-    const tag59 = formatTlv('59', PROMPTPAY_CONFIG.accountName || 'BHR PARKING');
-    const tag60 = formatTlv('60', 'BANGKOK');
 
-    const rawData = tag00 + tag01 + tagField + tag53 + tag54 + tag58 + tag59 + tag60 + '6304';
-    const checksum = crc16(rawData);
-    return rawData + checksum;
+    // Do not add optional merchant-name/city fields to the bill-payment
+    // payload. Some banking apps are stricter than others about Tag 30
+    // payloads; keeping only the required payment fields improves compatibility.
+    const rawData = tag00 + tag01 + formatTlv('30', tag30Value) + tag53 + tag54 + tag58 + '6304';
+    return rawData + crc16(rawData);
 }
 
 let qrCodeInstance = null;
@@ -664,7 +640,7 @@ function renderPromptPayQR(targetId, amount, ref1, ref2) {
     if (!rendered) {
         // Fallback using image URL
         const qrImg = document.createElement('img');
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=208x208&margin=4&data=${encodeURIComponent(payload)}`;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&margin=4&data=${encodeURIComponent(payload)}`;
         qrImg.alt = "PromptPay QR Code";
         qrImg.className = "w-[208px] h-[208px] object-contain mx-auto block";
         qrContainer.appendChild(qrImg);
@@ -1404,12 +1380,140 @@ function submitAdminPin() {
 }
 function closePinModal() { document.getElementById('pinModal').classList.add('hidden'); document.getElementById('pinModal').classList.remove('flex'); pinCheckMode = 'admin'; }
 /* ==========================================
+   MANUAL PAYMENT QR GENERATOR
+   Uses the exact same PromptPay/Biller payload builder
+   as the existing parking-payment flow.
+   ========================================== */
+let manualQrCodeInstance = null;
+
+function openPaymentQrGenerator() {
+    const modal = document.getElementById('paymentQrGeneratorModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    const amount = document.getElementById('manualQrAmount');
+    if (amount) setTimeout(() => amount.focus(), 150);
+}
+
+function closePaymentQrGenerator() {
+    const modal = document.getElementById('paymentQrGeneratorModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+function generateManualPaymentQR() {
+    const amountInput = document.getElementById('manualQrAmount');
+    const ref1Input = document.getElementById('manualQrRef1');
+    const ref2Input = document.getElementById('manualQrRef2');
+    const amount = Number(amountInput?.value);
+    const ref1 = String(ref1Input?.value || '').trim();
+    const ref2 = String(ref2Input?.value || '').trim();
+    const payloadRef1 = ref1 || '788';
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        return showAlert('แจ้งเตือน', 'กรุณาระบุจำนวนเงินที่มากกว่า 0 บาท', 'error');
+    }
+
+    const container = document.getElementById('manualQrCode');
+    if (!container) return;
+    container.innerHTML = '';
+    container.style.backgroundColor = '#ffffff';
+
+    let payload;
+    try {
+        payload = generatePromptPayPayload(PROMPTPAY_CONFIG.billerId, amount, payloadRef1, ref2);
+    } catch (err) {
+        console.error('Manual QR payload error:', err);
+        return showAlert('สร้าง QR ไม่สำเร็จ', 'ตรวจสอบ Biller ID ในระบบก่อนใช้งาน', 'error');
+    }
+
+    // Unhide result container BEFORE generating QR so canvas renders at correct dimensions
+    const result = document.getElementById('manualQrResult');
+    const form = document.getElementById('manualQrForm');
+    if (form) form.classList.add('hidden');
+    if (result) {
+        result.classList.remove('hidden');
+        result.scrollTop = 0;
+    }
+
+    let rendered = false;
+    if (typeof QRCode !== 'undefined') {
+        try {
+            manualQrCodeInstance = new QRCode(container, {
+                text: payload,
+                width: 280,
+                height: 280,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: (QRCode.CorrectLevel && typeof QRCode.CorrectLevel.M !== 'undefined')
+                    ? QRCode.CorrectLevel.M : 0
+            });
+            // IMPORTANT: qrcode.min.js creates both a canvas (internal) and an img (display).
+            // Hide canvas and show only img to prevent two elements rendering side-by-side
+            // inside the flex container, which distorts the QR to an unscannable aspect ratio.
+            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
+            if (canvas) {
+                canvas.style.display = 'none';
+            }
+            if (img) {
+                img.style.width = '280px';
+                img.style.height = '280px';
+                img.style.display = 'block';
+                img.style.margin = '0 auto';
+                img.style.imageRendering = 'auto';
+            }
+            rendered = !!(canvas || img);
+        } catch (err) {
+            console.warn('Manual QR render error:', err);
+        }
+    }
+
+    if (!rendered) {
+        const qrImg = document.createElement('img');
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=4&data=${encodeURIComponent(payload)}`;
+        qrImg.alt = 'Thai QR Payment';
+        qrImg.className = 'payment-qr-fallback';
+        container.appendChild(qrImg);
+    }
+
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || '-';
+    };
+    setText('manualQrAmountDisplay', `${amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`);
+    setText('manualQrAccountDisplay', 'Bangkok Horizon');
+    setText('manualQrBillerDisplay', PROMPTPAY_CONFIG.billerId);
+    setText('manualQrRef1Display', payloadRef1);
+    setText('manualQrRef2Display', ref2 || '-');
+
+    const modal = document.getElementById('paymentQrGeneratorModal');
+    if (modal) {
+        modal.classList.add('payment-qr-showing');
+        modal.scrollTop = 0;
+    }
+    hapticFeedback(10);
+}
+
+function resetManualPaymentQR() {
+    const form = document.getElementById('manualQrForm');
+    const result = document.getElementById('manualQrResult');
+    if (result) result.classList.add('hidden');
+    if (form) form.classList.remove('hidden');
+    const modal = document.getElementById('paymentQrGeneratorModal');
+    if (modal) modal.classList.remove('payment-qr-showing');
+    const qr = document.getElementById('manualQrCode');
+    if (qr) qr.innerHTML = '';
+}
+
+/* ==========================================
    THEME / DISPLAY SETTINGS
    ========================================== */
 function getThemePreference() {
     try {
         const saved = localStorage.getItem('bhr-theme');
-        return ['dark', 'liquid'].includes(saved) ? saved : 'light';
+        return saved === 'dark' ? 'dark' : 'light';
     } catch (e) { return 'light'; }
 }
 
@@ -1418,7 +1522,7 @@ function isDarkTheme() {
 }
 
 function applyTheme(preference, persist = true) {
-    const value = ['dark', 'liquid'].includes(preference) ? preference : 'light';
+    const value = preference === 'dark' ? 'dark' : 'light';
     document.documentElement.dataset.theme = value;
     if (persist) {
         try { localStorage.setItem('bhr-theme', value); } catch (e) {}
@@ -1428,7 +1532,7 @@ function applyTheme(preference, persist = true) {
 
 function updateThemeChecks() {
     const current = getThemePreference();
-    ['Light', 'Dark', 'Liquid'].forEach(name => {
+    ['Light', 'Dark'].forEach(name => {
         const el = document.getElementById('themeCheck' + name);
         if (el) el.classList.toggle('hidden', current !== name.toLowerCase());
     });

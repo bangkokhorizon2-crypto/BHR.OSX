@@ -1,6 +1,6 @@
 // BHR.OSX Service Worker
 // Version this file whenever a new app build is published.
-const APP_VERSION = '1.0.10';
+const APP_VERSION = '1.0.14';
 const CACHE_NAME = `bhr-osx-${APP_VERSION}`;
 
 const APP_SHELL = [

@@ -420,6 +420,23 @@ input[type=number]::-webkit-outer-spin-button {
    - QR payment area is deliberately excluded from dark styling.
    ========================================================= */
 html[data-theme="light"] { color-scheme: light; }
+
+/* Clean white theme: minimal, flat and distraction-free. */
+html[data-theme="light"] .vision-input,
+html[data-theme="light"] .glass-input,
+html[data-theme="light"] .horizon-input,
+html[data-theme="light"] .vision-animated-border {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04) !important;
+}
+html[data-theme="light"] .glass,
+html[data-theme="light"] .vision-glass,
+html[data-theme="light"] .vision-glass-heavy {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 html[data-theme="dark"] { color-scheme: dark; }
 
 html[data-theme="dark"] {
@@ -572,124 +589,6 @@ html[data-theme="dark"] #exitPopupModal .text-gray-400 { color: #cbd5e1 !importa
 
 
 /* =========================================================
-   iOS LIQUID GLASS THEME
-   - Visual layer only. Does not alter parking/payment logic.
-   - Payment QR is explicitly excluded from glass effects.
-   ========================================================= */
-html[data-theme="liquid"] {
-  color-scheme: light;
-  --one-bg: #eef3fb;
-  --one-surface: rgba(255,255,255,.56);
-  --one-text-main: #172033;
-  --one-text-sub: #536176;
-}
-
-html[data-theme="liquid"] body {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(255,255,255,.95), transparent 34%),
-    radial-gradient(circle at 88% 20%, rgba(120,170,255,.20), transparent 34%),
-    radial-gradient(circle at 50% 100%, rgba(190,150,255,.16), transparent 42%),
-    #eef3fb !important;
-  color: var(--one-text-main) !important;
-}
-
-html[data-theme="liquid"] .glass,
-html[data-theme="liquid"] .vision-glass,
-html[data-theme="liquid"] .vision-glass-heavy,
-html[data-theme="liquid"] .theme-option,
-html[data-theme="liquid"] #mainNavbar,
-html[data-theme="liquid"] nav,
-html[data-theme="liquid"] .modal-content {
-  background: rgba(255,255,255,.52) !important;
-  border: 1px solid rgba(255,255,255,.72) !important;
-  box-shadow:
-    0 18px 50px rgba(44,62,92,.12),
-    inset 0 1px 0 rgba(255,255,255,.85) !important;
-  backdrop-filter: blur(26px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(150%) !important;
-}
-
-html[data-theme="liquid"] input,
-html[data-theme="liquid"] select,
-html[data-theme="liquid"] textarea {
-  background: rgba(255,255,255,.58) !important;
-  border-color: rgba(255,255,255,.78) !important;
-  color: #172033 !important;
-  box-shadow: inset 0 1px 2px rgba(20,40,80,.04), 0 1px 0 rgba(255,255,255,.8);
-  backdrop-filter: blur(18px) saturate(145%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(145%) !important;
-}
-
-html[data-theme="liquid"] .bg-white,
-html[data-theme="liquid"] .bg-gray-50,
-html[data-theme="liquid"] .bg-gray-100 {
-  background-color: rgba(255,255,255,.48) !important;
-}
-html[data-theme="liquid"] .text-gray-900,
-html[data-theme="liquid"] .text-gray-800,
-html[data-theme="liquid"] .text-gray-700,
-html[data-theme="liquid"] .text-gray-600 { color: #172033 !important; }
-html[data-theme="liquid"] .text-gray-500,
-html[data-theme="liquid"] .text-gray-400 { color: #536176 !important; }
-
-html[data-theme="liquid"] .theme-option-liquid {
-  background: rgba(255,255,255,.72) !important;
-  box-shadow: 0 10px 28px rgba(50,80,130,.10), inset 0 1px 0 rgba(255,255,255,.9) !important;
-}
-
-/* QR PAYMENT SAFETY — NEVER apply blur, transparency, tint, inversion, or glass to the scanner image. */
-html[data-theme="liquid"] #promptpaySection,
-html[data-theme="liquid"] #promptpaySection > *,
-html[data-theme="liquid"] #promptpayQrCode,
-html[data-theme="liquid"] #promptpayQrCode canvas,
-html[data-theme="liquid"] #promptpayQrCode img {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-#promptpaySection,
-#promptpaySection #promptpayQrCode {
-  isolation: isolate !important;
-}
-
-#promptpayQrCode {
-  box-sizing: border-box !important;
-  width: 240px !important;
-  height: 240px !important;
-  padding: 16px !important;
-  background: #fff !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  opacity: 1 !important;
-}
-
-#promptpayQrCode canvas,
-#promptpayQrCode img {
-  box-sizing: border-box !important;
-  width: 208px !important;
-  height: 208px !important;
-  background: #fff !important;
-  opacity: 1 !important;
-  transform: none !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  image-rendering: auto !important;
-  object-fit: contain !important;
-  display: block !important;
-}
-
-/* Do not let a parent glass layer create translucency over payment content. */
-html[data-theme="liquid"] #exitPopupModal #promptpaySection,
-html[data-theme="liquid"] #exitPopupModal #promptpaySection * {
-  text-shadow: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-theme="liquid"] * { scroll-behavior: auto !important; }
-}
-
-/* =========================================================
    LOADING SPINNER VISIBILITY FIX
    Keep spinners clearly visible in Dark Mode and Liquid Glass.
    Does not affect payment QR rendering.
@@ -788,4 +687,387 @@ html[data-theme="dark"] #loader .text-ios-secondary {
       bottom: calc(env(safe-area-inset-bottom) + 10px) !important;
     }
   }
+}
+
+/* =========================================================
+   NEW MONOCHROME / CHATGPT-LIKE LIGHT THEME
+   Existing logic and dark theme are intentionally preserved.
+   ========================================================= */
+html[data-theme="light"] {
+  --one-bg: #f7f7f8;
+  --one-surface: #ffffff;
+  --one-primary: #171717;
+  --one-text-main: #171717;
+  --one-text-sub: #6b6b6b;
+  color-scheme: light;
+}
+
+html[data-theme="light"] body {
+  background: #f7f7f8 !important;
+  color: #171717 !important;
+}
+
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html[data-theme="light"] .text-ios-primary {
+  color: #171717 !important;
+}
+
+html[data-theme="light"] .text-gray-500,
+html[data-theme="light"] .text-gray-400,
+html[data-theme="light"] .text-ios-secondary {
+  color: #6b6b6b !important;
+}
+
+html[data-theme="light"] .vision-glass,
+html[data-theme="light"] .glass,
+html[data-theme="light"] .vision-glass-heavy {
+  background: #ffffff !important;
+  border: 1px solid #e6e6e6 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.04) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="light"] .vision-input,
+html[data-theme="light"] .glass-input,
+html[data-theme="light"] .horizon-input,
+html[data-theme="light"] .vision-animated-border {
+  background: #ffffff !important;
+  border: 1px solid #d9d9d9 !important;
+  color: #171717 !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+html[data-theme="light"] .vision-input:focus,
+html[data-theme="light"] .glass-input:focus,
+html[data-theme="light"] .horizon-input:focus {
+  border-color: #171717 !important;
+  box-shadow: 0 0 0 3px rgba(0,0,0,.07) !important;
+}
+
+html[data-theme="light"] button.bg-ios-blue,
+html[data-theme="light"] .vision-btn {
+  background: #171717 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] #mainNavbar {
+  background: rgba(255,255,255,.94) !important;
+  border-color: #e6e6e6 !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08) !important;
+}
+
+/* New payment generator */
+.payment-generator-card {
+  background: #ffffff;
+  color: #171717;
+  border: 1px solid rgba(0,0,0,.08);
+}
+.payment-generator-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #171717;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.payment-field-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+}
+.payment-field {
+  width: 100%;
+  height: 50px;
+  border: 1px solid #dcdcdc;
+  border-radius: 14px;
+  background: #fff;
+  color: #171717;
+  padding: 0 15px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.payment-field:focus {
+  border-color: #171717;
+  box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+}
+.payment-field::placeholder { color: #a1a1a1; }
+.payment-generator-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.payment-generator-note i { margin-top: 2px; color: #555; }
+.payment-generate-button {
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 15px;
+  background: #171717;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform .15s ease, background .15s ease;
+}
+.payment-generate-button:hover { background: #000; }
+.payment-generate-button:active { transform: scale(.985); }
+.payment-result-card {
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+  border-radius: 22px;
+  background: #fff;
+}
+.payment-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 18px;
+  border-bottom: 1px solid #ededed;
+}
+.payment-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  color: #555;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.payment-live-badge span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+.payment-qr-stage {
+  padding: 20px 16px 18px;
+  text-align: center;
+  background: #fafafa;
+}
+.payment-qr-paper {
+  width: 286px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 14px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 3px 18px rgba(0,0,0,.08);
+}
+.payment-qr-code {
+  width: 256px;
+  height: 256px;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff !important;
+}
+.payment-qr-code canvas,
+.payment-qr-code img {
+  width: 256px !important;
+  height: 256px !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  display: block !important;
+  margin: 0 auto !important;
+  background: #fff !important;
+  filter: none !important;
+  image-rendering: pixelated !important;
+}
+.payment-result-amount {
+  margin-top: 14px;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  color: #171717;
+}
+.payment-result-info {
+  padding: 13px 18px;
+  border-top: 1px solid #ededed;
+}
+.payment-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 8px 0;
+  font-size: 11px;
+}
+.payment-info-row + .payment-info-row { border-top: 1px solid #f1f1f1; }
+.payment-info-row span { color: #888; }
+.payment-info-row strong { color: #222; font-weight: 600; text-align: right; word-break: break-word; }
+.payment-scan-tip {
+  display: flex;
+  gap: 10px;
+  margin: 0 14px 14px;
+  padding: 12px;
+  border-radius: 13px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.payment-scan-tip i { color: #333; margin-top: 2px; }
+
+html[data-theme="dark"] .payment-generator-card {
+  background: #151821;
+  color: #f8fafc;
+  border-color: #303744;
+}
+html[data-theme="dark"] .payment-generator-card .text-gray-900 { color: #f8fafc !important; }
+html[data-theme="dark"] .payment-generator-card .text-gray-500,
+html[data-theme="dark"] .payment-generator-card .text-gray-400 { color: #aeb7c5 !important; }
+html[data-theme="dark"] .payment-field {
+  background: #0f1218;
+  border-color: #343b48;
+  color: #f8fafc;
+}
+html[data-theme="dark"] .payment-field:focus { border-color: #f8fafc; box-shadow: 0 0 0 3px rgba(255,255,255,.08); }
+html[data-theme="dark"] .payment-generator-note,
+html[data-theme="dark"] .payment-scan-tip { background: #202630; color: #aeb7c5; }
+html[data-theme="dark"] .payment-generate-button { background: #f8fafc; color: #111; }
+html[data-theme="dark"] .payment-result-card { background: #151821; border-color: #303744; }
+html[data-theme="dark"] .payment-result-head,
+html[data-theme="dark"] .payment-result-info,
+html[data-theme="dark"] .payment-info-row + .payment-info-row { border-color: #303744; }
+html[data-theme="dark"] .payment-result-head .text-gray-900,
+html[data-theme="dark"] .payment-result-amount,
+html[data-theme="dark"] .payment-info-row strong { color: #f8fafc !important; }
+html[data-theme="dark"] .payment-live-badge { background: #202630; color: #cbd5e1; }
+html[data-theme="dark"] .payment-qr-stage { background: #0f1218; }
+html[data-theme="dark"] .payment-result-info { background: #151821; }
+
+
+/* =========================================================
+   BHR.OSX v1.0.14 — TRUE MONOCHROME LIGHT UI
+   This layer intentionally overrides the legacy blue/glass light theme.
+   Dark theme remains untouched.
+   ========================================================= */
+html[data-theme="light"] body,
+html[data-theme="light"] #mainContent { background:#f7f7f8 !important; color:#171717 !important; }
+html[data-theme="light"] .orb { display:none !important; }
+html[data-theme="light"] .glass,
+html[data-theme="light"] .vision-glass,
+html[data-theme="light"] .vision-glass-heavy {
+  background:#fff !important; border:1px solid #e5e5e5 !important;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 30px rgba(0,0,0,.04) !important;
+  backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+}
+html[data-theme="light"] .vision-input,
+html[data-theme="light"] .glass-input,
+html[data-theme="light"] .horizon-input,
+html[data-theme="light"] .vision-animated-border {
+  background:#fff !important; color:#171717 !important; border:1px solid #d8d8d8 !important;
+  box-shadow:none !important; animation:none !important;
+}
+html[data-theme="light"] button.bg-ios-blue,
+html[data-theme="light"] .vision-btn { background:#171717 !important; color:#fff !important; box-shadow:none !important; }
+html[data-theme="light"] #mainNavbar { background:rgba(255,255,255,.96) !important; border:1px solid #e5e5e5 !important; box-shadow:0 8px 30px rgba(0,0,0,.08) !important; backdrop-filter:none !important; }
+html[data-theme="light"] #mainNavbar button { color:#737373 !important; background:transparent !important; box-shadow:none !important; }
+html[data-theme="light"] #mainNavbar button.bg-blue-50 { color:#171717 !important; background:#f0f0f0 !important; }
+html[data-theme="light"] .theme-option { background:#fff !important; border-color:#e5e5e5 !important; }
+html[data-theme="light"] .theme-option strong { color:#171717 !important; }
+html[data-theme="light"] .theme-option .text-blue-600 { color:#171717 !important; }
+html[data-theme="light"] #settingsModal > div { background:#fff !important; border:1px solid #e5e5e5 !important; box-shadow:0 20px 60px rgba(0,0,0,.12) !important; backdrop-filter:none !important; }
+
+/* Payment modal: full-screen result, QR visible immediately after generation. */
+.payment-generator-card { background:#fff; color:#171717; border:1px solid rgba(0,0,0,.08); }
+.payment-modal-topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; border-bottom:1px solid #ededed; position:sticky; top:0; z-index:2; background:rgba(255,255,255,.96); backdrop-filter:blur(14px); }
+.payment-modal-title { text-align:center; line-height:1.1; }
+.payment-modal-title h3 { margin:3px 0 0; font-size:18px; font-weight:700; letter-spacing:-.02em; }
+.payment-modal-kicker { font-size:9px; letter-spacing:.18em; color:#8a8a8a; font-weight:700; }
+.payment-modal-mark,.payment-close-button { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.payment-modal-mark { background:#171717; color:#fff; font-size:13px; }
+.payment-close-button { border:1px solid #e7e7e7; background:#fff; color:#555; }
+.payment-generator-intro { display:flex; gap:12px; align-items:center; padding:14px; border:1px solid #e9e9e9; border-radius:18px; background:#fff; }
+.payment-intro-icon { width:42px; height:42px; border-radius:13px; background:#171717; color:#fff; display:flex; align-items:center; justify-content:center; flex:none; }
+.payment-generator-intro h4 { font-size:15px; font-weight:700; margin:0; }
+.payment-generator-intro p { margin:3px 0 0; color:#737373; font-size:12px; }
+.payment-field-label { display:block; margin:0 0 7px; font-size:12px; font-weight:650; color:#333; }
+.payment-field-label span { color:#999; font-weight:400; }
+.payment-field { width:100%; height:50px; border:1px solid #d9d9d9; border-radius:14px; background:#fff; color:#171717; padding:0 15px; outline:none; transition:.15s ease; }
+.payment-field:focus { border-color:#171717; box-shadow:0 0 0 3px rgba(0,0,0,.06); }
+.payment-field::placeholder { color:#a5a5a5; }
+.payment-amount-input { padding-right:58px; font-size:24px; font-weight:700; letter-spacing:-.02em; }
+.payment-amount-input-wrap { position:relative; }
+.payment-amount-input-wrap > span { position:absolute; right:15px; top:50%; transform:translateY(-50%); color:#8a8a8a; font-size:12px; font-weight:600; }
+.payment-generator-note { display:flex; gap:9px; padding:11px 12px; border-radius:13px; background:#f3f3f3; color:#666; font-size:11px; line-height:1.55; }
+.payment-generator-note i { color:#333; margin-top:2px; }
+.payment-generate-button,.payment-primary-button { border:0; background:#171717; color:#fff; height:52px; border-radius:15px; display:flex; align-items:center; justify-content:center; gap:9px; font-size:14px; font-weight:700; width:100%; }
+.payment-generate-button:active,.payment-primary-button:active { transform:scale(.985); }
+.payment-ready-banner { display:flex; align-items:center; gap:12px; padding:14px; border-radius:18px; background:#171717; color:#fff; margin-bottom:14px; }
+.payment-ready-icon { width:38px; height:38px; border-radius:12px; background:#fff; color:#171717; display:flex; align-items:center; justify-content:center; }
+.payment-ready-title { font-weight:750; font-size:15px; }
+.payment-ready-subtitle { font-size:11px; opacity:.7; margin-top:2px; }
+.payment-qr-card { background:#fff; border:1px solid #e5e5e5; border-radius:22px; padding:18px 12px 16px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.05); }
+.payment-qr-label { font-size:9px; letter-spacing:.18em; font-weight:800; color:#777; margin-bottom:9px; }
+.payment-qr-code { width:300px; max-width:100%; min-height:300px; margin:0 auto; display:flex; align-items:center; justify-content:center; background:#fff !important; padding:8px; box-sizing:border-box; }
+.payment-qr-code canvas,.payment-qr-code img { width:280px !important; height:280px !important; max-width:100%; display:block !important; margin:0 auto !important; }
+.payment-qr-fallback { object-fit:contain; }
+.payment-result-amount { font-size:28px; font-weight:800; letter-spacing:-.04em; color:#171717; margin-top:6px; }
+.payment-purpose { color:#737373; font-size:12px; margin-top:3px; }
+.payment-summary-card { margin-top:12px; padding:4px 15px; border:1px solid #e5e5e5; border-radius:18px; background:#fff; }
+.payment-summary-title { padding:11px 0 8px; font-size:11px; font-weight:700; color:#777; }
+.payment-info-row { display:flex; justify-content:space-between; gap:15px; padding:11px 0; border-top:1px solid #f0f0f0; font-size:12px; }
+.payment-info-row span { color:#888; }
+.payment-info-row strong { color:#222; font-weight:650; text-align:right; word-break:break-word; }
+.payment-scan-tip { display:flex; gap:10px; margin-top:12px; padding:12px; border-radius:14px; background:#f3f3f3; color:#666; font-size:11px; line-height:1.55; }
+.payment-scan-tip i { color:#333; margin-top:2px; }
+.payment-result-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+.payment-secondary-button { height:48px; border:1px solid #ddd; background:#fff; color:#333; border-radius:14px; font-size:13px; font-weight:650; }
+.payment-primary-button { height:48px; border-radius:14px; }
+
+html[data-theme="dark"] .payment-modal-topbar { background:#151821; border-color:#303744; }
+html[data-theme="dark"] .payment-generator-intro,
+html[data-theme="dark"] .payment-field,
+html[data-theme="dark"] .payment-qr-card,
+html[data-theme="dark"] .payment-summary-card,
+html[data-theme="dark"] .payment-secondary-button { background:#151821; border-color:#303744; color:#f8fafc; }
+html[data-theme="dark"] .payment-generator-intro p,
+html[data-theme="dark"] .payment-purpose,
+html[data-theme="dark"] .payment-info-row span { color:#aeb7c5; }
+html[data-theme="dark"] .payment-field { color:#f8fafc; }
+html[data-theme="dark"] .payment-generator-note,
+html[data-theme="dark"] .payment-scan-tip { background:#202630; color:#aeb7c5; }
+html[data-theme="dark"] .payment-ready-banner { background:#f8fafc; color:#111; }
+html[data-theme="dark"] .payment-ready-icon { background:#111; color:#fff; }
+html[data-theme="dark"] .payment-result-amount,
+html[data-theme="dark"] .payment-info-row strong { color:#f8fafc; }
+html[data-theme="dark"] .payment-info-row { border-color:#303744; }
+html[data-theme="dark"] .payment-secondary-button { color:#f8fafc; }
+html[data-theme="dark"] .payment-qr-card { box-shadow:none; }
+html[data-theme="dark"] .payment-close-button { background:#202630; color:#f8fafc; border-color:#303744; }
+html[data-theme="dark"] .payment-modal-mark { background:#f8fafc; color:#111; }
+
+@media (max-width: 480px) {
+  .payment-generator-card { border-radius:0; }
+  .payment-qr-code { width:calc(100vw - 72px); min-height:calc(100vw - 72px); }
+  .payment-qr-code canvas,.payment-qr-code img { width:min(280px, calc(100vw - 96px)) !important; height:min(280px, calc(100vw - 96px)) !important; }
+  .payment-result-amount { font-size:25px; }
 }
