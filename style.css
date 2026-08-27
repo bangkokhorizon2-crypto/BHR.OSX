@@ -878,26 +878,26 @@ html[data-theme="light"] #mainNavbar {
   box-shadow: 0 3px 18px rgba(0,0,0,.08);
 }
 .payment-qr-code {
-  width: 256px;
-  height: 256px;
+  width: 280px;
+  height: 280px;
   max-width: 100%;
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block !important;
+  position: relative;
+  overflow: hidden;
   background: #fff !important;
 }
 .payment-qr-code canvas,
 .payment-qr-code img {
-  width: 256px !important;
-  height: 256px !important;
+  width: 280px !important;
+  height: 280px !important;
   max-width: 100% !important;
   max-height: 100% !important;
   display: block !important;
   margin: 0 auto !important;
   background: #fff !important;
   filter: none !important;
-  image-rendering: pixelated !important;
+  image-rendering: auto !important;
 }
 .payment-result-amount {
   margin-top: 14px;
@@ -1027,7 +1027,7 @@ html[data-theme="light"] #settingsModal > div { background:#fff !important; bord
 .payment-ready-subtitle { font-size:11px; opacity:.7; margin-top:2px; }
 .payment-qr-card { background:#fff; border:1px solid #e5e5e5; border-radius:22px; padding:18px 12px 16px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,.05); }
 .payment-qr-label { font-size:9px; letter-spacing:.18em; font-weight:800; color:#777; margin-bottom:9px; }
-.payment-qr-code { width:300px; max-width:100%; min-height:300px; margin:0 auto; display:flex; align-items:center; justify-content:center; background:#fff !important; padding:8px; box-sizing:border-box; }
+.payment-qr-code { width:280px; max-width:100%; min-height:280px; margin:0 auto; display:block !important; position:relative; overflow:hidden; background:#fff !important; padding:0; box-sizing:border-box; }
 .payment-qr-code canvas,.payment-qr-code img { width:280px !important; height:280px !important; max-width:100%; display:block !important; margin:0 auto !important; }
 .payment-qr-fallback { object-fit:contain; }
 .payment-result-amount { font-size:28px; font-weight:800; letter-spacing:-.04em; color:#171717; margin-top:6px; }
